@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: hadoop-config-nfs-pv
+  labels:
+    release: hadoop-config
+spec:
+  storageClassName: hadoop-config
+  capacity:
+    storage: 16Mi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    path: /mnt/xfs/hadoop-config
+    server: 10.18.129.161
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hadoop-config-nfs-pvc
+spec:
+  storageClassName: hadoop-config
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 16Mi
+  selector:
+    matchLabels:
+      release: hadoop-config

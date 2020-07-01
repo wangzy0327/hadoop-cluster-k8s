@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hadoop-dn-service
+  labels:
+    app: hadoop-dn
+spec:
+  ports:
+    - port: 9000
+      name: hdfs
+    - port: 50010
+      name: data-node-trans
+    - port: 50075
+      name: data-node-http
+  clusterIP: None
+  selector:
+    app: hadoop-dn
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hadoop-dn
+spec:
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: hadoop-dn
+  serviceName: hadoop-dn-service
+  template:
+    metadata:
+      labels:
+        app: hadoop-dn
+    spec:
+      containers:
+        - name: hadoop-dn
+          image: 10.18.127.2:5000/hadoop-py3-2.9.2:v1
+          command: ["bash", "-c", "chmod +x /root/bootstrap.sh && /root/bootstrap.sh"]
+          env:
+            - name: HADOOP_CONF_DIR
+              value: /etc/hadoop
+            - name: NODE_TYPE
+              value: DN,NM
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          volumeMounts:
+            - name: hadoop-config-volume
+              mountPath: /etc/hadoop
+            - name: hadoop-custom-config-volume
+              mountPath: /root/bootstrap
+            - name: dfs-name-dir-volume
+              mountPath: /root/hadoop/dfs/name
+            - name: dfs-data-dir-volume
+              mountPath: /root/hadoop/dfs/data
+            - name: hadoop-exec-sh
+              mountPath: /root/
+            - name: env-path
+              mountPath: /home/
+      volumes:
+        - name: hadoop-custom-config-volume
+          configMap:
+            name: hadoop-custom-config-cm
+        - name: hadoop-config-volume
+          persistentVolumeClaim:
+            claimName: hadoop-config-nfs-pvc
+        - name: dfs-name-dir-volume
+          persistentVolumeClaim:
+            claimName: hadoop-hdfs-name-nfs-pvc
+        - name: dfs-data-dir-volume
+          emptyDir: {}
+        - name: hadoop-exec-sh
+          nfs:
+            path: /mnt/xfs/hadoop-exec
+            server: 10.18.129.161
+        - name: env-path
+          nfs:
+            path: /mnt/xfs/env-hosts
+            server: 10.18.129.161

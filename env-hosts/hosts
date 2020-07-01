@@ -1,0 +1,6 @@
+# ip hostname
+
+hadoop-dn-3.hadoop-dn-service.default.svc.cluster.local.  192.168.2.171
+hadoop-dn-0.hadoop-dn-service.default.svc.cluster.local.  192.168.2.173
+hadoop-dn-1.hadoop-dn-service.default.svc.cluster.local.  192.168.2.174
+hadoop-dn-2.hadoop-dn-service.default.svc.cluster.local.  192.168.2.175
