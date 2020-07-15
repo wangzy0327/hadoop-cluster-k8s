@@ -21,6 +21,8 @@ metadata:
 spec:
   replicas: 1
   revisionHistoryLimit: 10
+  updateStrategy:
+    type: RollingUpdate
   selector:
     matchLabels:
       app: hadoop-nn
@@ -34,6 +36,13 @@ spec:
         - name: hadoop-nn
           image: 10.18.127.2:5000/hadoop-py3-2.9.2:v1
           command: ["bash", "-c", "chmod +x /root/bootstrap.sh && /root/bootstrap.sh"]
+          resources:
+            limits:
+              cpu: 12
+              memory: "10Gi"
+            requests:
+              cpu: 10
+              memory: "8Gi"
           env:
             - name: HADOOP_CONF_DIR
               value: /etc/hadoop

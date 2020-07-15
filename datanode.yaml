@@ -36,6 +36,13 @@ spec:
         - name: hadoop-dn
           image: 10.18.127.2:5000/hadoop-py3-2.9.2:v1
           command: ["bash", "-c", "chmod +x /root/bootstrap.sh && /root/bootstrap.sh"]
+          resources:
+            limits:
+              cpu: 10
+              memory: "8Gi"
+            requests:
+              cpu: 8
+              memory: "6Gi"
           env:
             - name: HADOOP_CONF_DIR
               value: /etc/hadoop
