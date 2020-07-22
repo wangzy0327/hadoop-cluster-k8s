@@ -44,6 +44,7 @@
    使用statefulset进行部署，statefulset使用haedless-service确保POD基本稳定的网络ID
    通过环境变量设置NODE_TYPE，这里NameNode跟ResourceManager运行在同一个容器中
    这里的数据存储采用volumeClaimTemplates。可改进空间：能采用DaemonSet部署，网络状态固定，可以在对应的节点挂载磁盘，使用HostPath来映射存储，更符合hadoop的分布式
+   v2版本采用NameNode与ResourceManager，DataNode与NodeManager分开部署，其中DataNode采用VolumeClaimTemplate自动化生成PVC
 ```
 - 创建DataNode
 ```
@@ -62,8 +63,10 @@ kubectl get sts
 kubectl scale sts hadoop-dn --replicas=4
 kubectl get sts
 ```
-**效果**
+**效果 v1**
 ![alt tag](https://raw.githubusercontent.com/wangzy0327/hadoop-cluster-k8s/master/output1.png)
 ![alt tag](https://raw.githubusercontent.com/wangzy0327/hadoop-cluster-k8s/master/output2.png)
 ![alt tag](https://raw.githubusercontent.com/wangzy0327/hadoop-cluster-k8s/master/output3.png)
 ![alt tag](https://raw.githubusercontent.com/wangzy0327/hadoop-cluster-k8s/master/output4.png)
+
+**效果 v2**

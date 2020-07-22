@@ -120,7 +120,7 @@ data:
     <!-- Site specific YARN configuration properties -->
       <property>
         <name>yarn.resourcemanager.hostname</name>
-        <value>${NAME_NODE_FQDN}</value>
+        <value>${RESOURCE_MANAGER_FQDN}</value>
       </property>
       <property>
         <name>yarn.resourcemanager.bind-host</name>

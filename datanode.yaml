@@ -21,7 +21,7 @@ kind: StatefulSet
 metadata:
   name: hadoop-dn
 spec:
-  replicas: 3
+  replicas: 5
   revisionHistoryLimit: 10
   selector:
     matchLabels:
@@ -36,18 +36,18 @@ spec:
         - name: hadoop-dn
           image: 10.18.127.2:5000/hadoop-py3-2.9.2:v1
           command: ["bash", "-c", "chmod +x /root/bootstrap.sh && /root/bootstrap.sh"]
-          resources:
-            limits:
-              cpu: 10
-              memory: "8Gi"
-            requests:
-              cpu: 8
-              memory: "6Gi"
+          #resources:
+            #limits:
+              #cpu: "2"
+              #memory: "500Mi"
+            #requests:
+              #cpu: "1"
+              #memory: "300Mi"
           env:
             - name: HADOOP_CONF_DIR
               value: /etc/hadoop
             - name: NODE_TYPE
-              value: DN,NM
+              value: DN
             - name: MY_POD_IP
               valueFrom:
                 fieldRef:
@@ -57,8 +57,6 @@ spec:
               mountPath: /etc/hadoop
             - name: hadoop-custom-config-volume
               mountPath: /root/bootstrap
-            - name: dfs-name-dir-volume
-              mountPath: /root/hadoop/dfs/name
             - name: dfs-data-dir-volume
               mountPath: /root/hadoop/dfs/data
             - name: hadoop-exec-sh
@@ -72,11 +70,6 @@ spec:
         - name: hadoop-config-volume
           persistentVolumeClaim:
             claimName: hadoop-config-nfs-pvc
-        - name: dfs-name-dir-volume
-          persistentVolumeClaim:
-            claimName: hadoop-hdfs-name-nfs-pvc
-        - name: dfs-data-dir-volume
-          emptyDir: {}
         - name: hadoop-exec-sh
           nfs:
             path: /mnt/xfs/hadoop-exec
@@ -85,3 +78,13 @@ spec:
           nfs:
             path: /mnt/xfs/env-hosts
             server: 10.18.129.161
+  volumeClaimTemplates:
+  - metadata:
+      name: dfs-data-dir-volume
+    spec:
+      storageClassName: hadoop-hdfs
+      accessModes:
+      - ReadWriteMany
+      resources:
+        requests:
+          storage: 20Gi   

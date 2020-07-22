@@ -1,64 +1,66 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: hadoop-nn-service
+  name: hadoop-node-manager-service
   labels:
-    app: hadoop-nn
+    app: hadoop-node-manager
 spec:
-  ports:
-    - port: 9000
-      name: hdfs
-    - port: 50070
-      name: name-node
+  #ports:
+    #- port: 50010
+      #name: data-node-trans
+    #- port: 50075
+      #name: data-node-http
   clusterIP: None
   selector:
-    app: hadoop-nn
+    app: hadoop-node-manager
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: hadoop-nn
+  name: hadoop-node-manager
 spec:
-  replicas: 1
+  replicas: 8
   revisionHistoryLimit: 10
   updateStrategy:
     type: RollingUpdate
   selector:
     matchLabels:
-      app: hadoop-nn
-  serviceName: hadoop-nn-service
+      app: hadoop-node-manager
+  serviceName: hadoop-node-manager-service
   template:
     metadata:
       labels:
-        app: hadoop-nn
+        app: hadoop-node-manager
     spec:
       containers:
-        - name: hadoop-nn
-          image: 10.18.127.2:5000/hadoop-py3-2.9.2:v1
+        - name: hadoop-node-manager
+          image: 10.18.127.2:5000/hadoop-py3-2.9.2:v2
           command: ["bash", "-c", "chmod +x /root/bootstrap.sh && /root/bootstrap.sh"]
           resources:
             limits:
-              cpu: "80m"
-              memory: "200Mi"
+              cpu: 3
+              memory: "5Gi"
             requests:
-              cpu: "50m"
-              memory: "100Mi"
+              cpu: 2
+              memory: "3Gi"
           env:
             - name: HADOOP_CONF_DIR
               value: /etc/hadoop
             - name: NODE_TYPE
-              value: NN
+              value: NM
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           volumeMounts:
             - name: hadoop-config-volume
               mountPath: /etc/hadoop
             - name: hadoop-custom-config-volume
               mountPath: /root/bootstrap
-            - name: dfs-name-dir-volume
-              mountPath: /root/hadoop/dfs/name
-            - name: dfs-data-dir-volume
-              mountPath: /root/hadoop/dfs/data
             - name: hadoop-exec-sh
               mountPath: /root/
+            - name: env-path
+              mountPath: /home/
       volumes:
         - name: hadoop-custom-config-volume
           configMap:
@@ -66,12 +68,11 @@ spec:
         - name: hadoop-config-volume
           persistentVolumeClaim:
             claimName: hadoop-config-nfs-pvc
-        - name: dfs-name-dir-volume
-          persistentVolumeClaim:
-            claimName: hadoop-hdfs-name-nfs-pvc
-        - name: dfs-data-dir-volume
-          emptyDir: {}
         - name: hadoop-exec-sh
           nfs:
             path: /mnt/xfs/hadoop-exec
+            server: 10.18.129.161
+        - name: env-path
+          nfs:
+            path: /mnt/xfs/env-hosts
             server: 10.18.129.161
